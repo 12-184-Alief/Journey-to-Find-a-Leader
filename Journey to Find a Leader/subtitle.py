@@ -3,9 +3,7 @@ import pygame
 class Subtitle:
     def __init__(self, screen, font=None, font_size=36, text_color=(0,0,0), y_offset=50, typing_speed=35):
         self.screen = screen
-        font_size = 21
-        font_path = "data/fonts/dogicapixelbold.otf"
-        self.font = pygame.font.Font(font_path, font_size)
+        self.font = pygame.font.Font("data/fonts/dogicapixelbold.otf", 21)
         self.text_color = text_color
         self.y_offset = 140
         self.typing_speed = typing_speed
