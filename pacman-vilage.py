@@ -1,31 +1,28 @@
+# Import modul pygame untuk membuat game dan sys untuk keluar dari program
 import pygame
 import sys
 
-# Inisialisasi Pygame
+# Inisialisasi semua modul pygame
 pygame.init()
 
-# Ukuran layar
+# Menentukan ukuran layar game
 WIDTH, HEIGHT = 1920, 1080
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Collision Blocking with Background")
+screen = pygame.display.set_mode((WIDTH, HEIGHT))  # Membuat jendela tampilan
+pygame.display.set_caption("Collision Blocking with Background")  # Judul jendela
 
-# Memuat font khusus untuk menampilkan teks di layar
+# Memuat font dari file eksternal untuk menampilkan teks
 font = pygame.font.Font("data/fonts/dogicapixelbold.otf", 21)
 
-# Load gambar dialog box (tanpa potret)
-DIALOG_WIDTH = 1500  # misalnya selebar 1400px
-DIALOG_HEIGHT = 150  # misalnya setinggi 200px
+# Load dan skala gambar kotak dialog
+DIALOG_WIDTH = 1500
+DIALOG_HEIGHT = 150
 dialog_box_img = pygame.image.load("data/images/entities/Dialog-Box.png").convert_alpha()
 dialog_box_img = pygame.transform.scale(dialog_box_img, (DIALOG_WIDTH, DIALOG_HEIGHT))
-# Warna
-# WHITE = (255, 255, 255)
-# BLUE = (0, 0, 255)
-# DARK_GRAY = (50, 50, 50)
 
-# Load gambar background
+# Load gambar background dari file
 background_image = pygame.image.load("data/images/entities/pacman_vilage.png").convert()
 
-# Load sprite animasi ke dalam list
+# Load animasi gerakan ke kanan dan kiri dalam bentuk list gambar (frame animasi)
 player_right = [
     pygame.image.load("data/images/entities/Bimas Kanan/1.png").convert_alpha(),
     pygame.image.load("data/images/entities/Bimas Kanan/2.png").convert_alpha(),
@@ -39,26 +36,27 @@ player_left = [
     pygame.image.load("data/images/entities/Bimas Kiri/4.png").convert_alpha()
 ]
 
-# Load gambar NPC
+# Load sprite NPC
 npc1_image = pygame.image.load("data/images/entities/npc1.png").convert_alpha()
 
-# FPS
+# Membuat objek clock untuk mengatur FPS
 clock = pygame.time.Clock()
-FPS = 60
+FPS = 60  # Frame per second
 
-# Objek player
+# Membuat objek pemain dalam bentuk Rect (x, y, lebar, tinggi)
 player_w = 50
 player_h = 80
 player = pygame.Rect(0, 495, player_w, player_h)
 
-# Kecepatan pemain
+# Kecepatan gerak pemain
 player_speed = 5
 
-facing_right = True  # Arah gerak saat ini
-frame_index = 0      # Index frame animasi
-frame_timer = 0      # Pengatur kecepatan animasi
+# Variabel arah dan animasi
+facing_right = True  # Mengatur arah default menghadap kanan
+frame_index = 0      # Index frame animasi yang sedang digunakan
+frame_timer = 0      # Timer untuk mengatur kecepatan pergantian frame
 
-# Objek dinding
+# Membuat beberapa dinding sebagai area yang tidak bisa dilewati
 wall1 = pygame.Rect(0, 0, 1022, 456)
 wall2 = pygame.Rect(1267, 0, 653, 413)
 wall3 = pygame.Rect(1022, 0, 245, 380)
@@ -67,16 +65,16 @@ wall5 = pygame.Rect(1256, 661, 664, 419)
 wall6 = pygame.Rect(1000, 1080, 250, 100)
 wall7 = pygame.Rect(1920, 430, 100, 230)
 
-# Status penyelesaian trigger zone
+# Menyimpan status penyelesaian dari setiap zona/trigger
 zone1_done = False
 zone2_done = False
 zone3_done = False
 
-# Sistem dialog zona 1
-dialog_active = False
-dialog_index = 0
+# Variabel kontrol dialog zona 1
+dialog_active = False  # Apakah dialog sedang aktif
+dialog_index = 0       # Indeks baris dialog yang sedang ditampilkan
 
-# Format dialog: "Speaker: Kalimat"
+# Daftar dialog sebagai list string
 dialog_list = [
     "Kepala Desa: Kamu kesatria utusan raja, ya?",
     "Kesatria: Benar. Ada apa dengan desa ini?",
@@ -91,47 +89,50 @@ dialog_list = [
     "Kepala Desa: Hati-hati. Banyak nyawa bergantung padamu."
 ]
 
-# Membuat area trigger untuk transisi map, posisi dan ukuran ditentukan
+# Membuat area trigger (zona interaktif)
 trigger_zone1 = pygame.Rect(1065, 296, 150, 100)
-# Membuat area trigger untuk transisi map, posisi dan ukuran ditentukan
 trigger_zone2 = pygame.Rect(1000, 1000, 250, 100)
-# Membuat area trigger untuk transisi map, posisi dan ukuran ditentukan
 trigger_zone3 = pygame.Rect(1810, 430, 100, 230)
 
-# Posisi tetap NPC di dekat masing-masing trigger zone
-npc1_pos = (trigger_zone1.x + 60, trigger_zone1.y)  # dekat trigger_zone1
+# Posisi NPC1 ditentukan berdasarkan trigger zone
+npc1_pos = (trigger_zone1.x + 60, trigger_zone1.y)
 
-# Game loop
+# Game loop utama
 running = True
 while running:
     # Gambar background ke layar
     screen.blit(background_image, (0, 0))
 
+    # Event handler (menangani input dan keluar program)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
-        # Jika user menekan tombol
+            running = False  # Keluar game
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
+                # Menekan enter saat dialog aktif
                 if dialog_active:
                     dialog_index += 1
+                    # Jika sudah melewati semua dialog, nonaktifkan dialog
                     if dialog_index >= len(dialog_list):
                         dialog_active = False
-                        zone1_done = True  # Dialog selesai, aktifkan zona berikutnya
+                        zone1_done = True
+                # Aktifkan dialog jika dalam trigger 1 dan belum selesai
                 elif in_trigger1 and not zone1_done:
                     dialog_active = True
                     dialog_index = 0
+                # Proses trigger kedua
                 elif in_trigger2 and zone1_done and not zone2_done:
                     print("Trigger Zone 2 selesai: Masuk labirin")
                     zone2_done = True
+                # Proses trigger ketiga
                 elif in_trigger3 and zone2_done and not zone3_done:
                     print("Trigger Zone 3 selesai: Next map")
                     zone3_done = True
 
-    # Simpan posisi lama
+    # Simpan posisi lama untuk rollback jika tabrakan
     old_position = player.copy()
 
-    # Kontrol pemain hanya jika dialog tidak aktif
+    # Kontrol pergerakan jika tidak sedang dialog
     keys = pygame.key.get_pressed()
     moving = False
     if not dialog_active:
@@ -150,61 +151,35 @@ while running:
             player.y += player_speed
             moving = True
 
+    # Cek tabrakan dengan semua dinding
+    if player.colliderect(wall1) or player.colliderect(wall2) or player.colliderect(wall3) or \
+       player.colliderect(wall4) or player.colliderect(wall5) or player.colliderect(wall6) or \
+       player.colliderect(wall7):
+        player = old_position  # Kembalikan ke posisi semula
 
-    # Cek tabrakan
-    if player.colliderect(wall1):
-        player = old_position
-    elif player.colliderect(wall2):
-        player = old_position
-    elif player.colliderect(wall3):
-        player = old_position
-    elif player.colliderect(wall4):
-        player = old_position
-    elif player.colliderect(wall5):
-        player = old_position
-    elif player.colliderect(wall6):
-        player = old_position
-    elif player.colliderect(wall7):
-        player = old_position
-
-    # Mengecek apakah player berada di dalam area trigger
+    # Cek apakah pemain menyentuh trigger zone
     in_trigger1 = player.colliderect(trigger_zone1)
-    # Mengecek apakah player berada di dalam area trigger
     in_trigger2 = player.colliderect(trigger_zone2)
-    # Mengecek apakah player berada di dalam area trigger
     in_trigger3 = player.colliderect(trigger_zone3)
 
-    # Update animasi hanya jika bergerak
+    # Update frame animasi jika bergerak
     if moving:
         frame_timer += 1
-        if frame_timer >= 10:  # Setiap 10 frame
+        if frame_timer >= 10:
             frame_index = (frame_index + 1) % len(player_right)
             frame_timer = 0
     else:
-        frame_index = 0  # Diam, gunakan frame pertama
+        frame_index = 0  # Diam, tampilkan frame pertama
 
-    # Pilih sprite berdasarkan arah
-    if facing_right:
-        sprite = player_right[frame_index]
-    else:
-        sprite = player_left[frame_index]
+    # Pilih sprite berdasarkan arah hadap
+    sprite = player_right[frame_index] if facing_right else player_left[frame_index]
 
-    # Gambar NPC ke layar
+    # Gambar NPC
     screen.blit(npc1_image, npc1_pos)
-    # Gambar pemain ke layar
+    # Gambar pemain
     screen.blit(sprite, player)
 
-    
-
-    # Gambar objek
-    # pygame.draw.rect(screen, BLUE, player)
-    # pygame.draw.rect(screen, DARK_GRAY, wall1)
-    # pygame.draw.rect(screen, DARK_GRAY, wall2)
-    # pygame.draw.rect(screen, DARK_GRAY, wall3)
-    # pygame.draw.rect(screen, DARK_GRAY, wall4)
-    # pygame.draw.rect(screen, DARK_GRAY, wall5)
-
-    # Jika berada di area trigger DAN zona tersebut boleh diakses
+    # Tampilkan teks aksi jika menyentuh trigger dan sesuai urutan zona
     if in_trigger1 and not zone1_done:
         text = font.render("Tekan ENTER untuk dialog", True, (255, 255, 255))
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT - 100))
@@ -215,24 +190,25 @@ while running:
         text = font.render("Tekan ENTER untuk next map", True, (255, 255, 255))
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT - 100))
 
+    # Jika semua zona telah selesai
     if zone1_done and zone2_done and zone3_done:
         done_text = font.render("Semua trigger selesai!", True, (255, 255, 0))
         screen.blit(done_text, (WIDTH // 2 - done_text.get_width() // 2, 50))
 
     # Tampilkan dialog jika aktif
     if dialog_active and dialog_index < len(dialog_list):
-        # Hitung posisi supaya dialog box berada di tengah horizontal dan di bawah layar
         dialog_x = (WIDTH - DIALOG_WIDTH) // 2
         dialog_y = 800
         # Gambar kotak dialog
-        screen.blit(dialog_box_img, (dialog_x, dialog_y))  # Sesuaikan posisi jika perlu
-        # Gambar teks dialog
+        screen.blit(dialog_box_img, (dialog_x, dialog_y))
+        # Gambar teks dialog saat ini
         dialog_text = font.render(dialog_list[dialog_index], True, (0, 0, 0))
-        screen.blit(dialog_text, (dialog_x + 50, dialog_y + 50))  # sesuaikan padding jika perlu
+        screen.blit(dialog_text, (dialog_x + 50, dialog_y + 50))
 
-
+    # Perbarui layar
     pygame.display.flip()
     clock.tick(FPS)
 
+# Keluar dari game setelah loop selesai
 pygame.quit()
 sys.exit()
